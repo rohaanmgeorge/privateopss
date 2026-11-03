@@ -28,11 +28,17 @@ A private operating system for your life — one calm space, no feeds, no ads. I
 | `Esc` | Close composer  |
 | `Enter` | Save entry    |
 
-## Data
+## Accounts & data
 
-Everything is stored **locally in the browser** (`localStorage`) for now. All reads and writes go through
-[`src/lib/budget/store.ts`](src/lib/budget/store.ts), the single seam to swap for a synced, multi-user backend later.
-Amounts are stored as integers in minor units (paise/cents) to avoid floating-point drift.
+- **Auth:** Supabase Auth — email magic link and Google. `src/proxy.ts` refreshes the session and redirects signed-out visitors to `/login`; `/auth/callback` exchanges the PKCE code.
+- **Database:** Supabase Postgres (provisioned via the Vercel Marketplace). Schema lives in [`supabase/migrations`](supabase/migrations); every table has owner-only **row-level security**, so each account only ever sees its own rows.
+- **Client store:** [`src/lib/budget/store.ts`](src/lib/budget/store.ts) keeps one in-memory snapshot, applies writes optimistically, persists via [`remote.ts`](src/lib/budget/remote.ts), and resyncs if a write fails.
+- Amounts are integers in minor units (paise/cents) to avoid floating-point drift.
+
+```bash
+vercel env pull --yes   # Supabase keys → .env.local
+npm run db:migrate      # apply pending SQL migrations
+```
 
 ## Stack
 
@@ -40,6 +46,7 @@ Amounts are stored as integers in minor units (paise/cents) to avoid floating-po
 - Tailwind CSS v4 with a paper/ink token system and automatic dark mode
 - [Motion](https://motion.dev) for animation · [Lucide](https://lucide.dev) icons
 - Instrument Serif + Geist typography
+- [Supabase](https://supabase.com) Auth + Postgres
 - Deployed on [Vercel](https://vercel.com)
 
 ## Develop
