@@ -1,6 +1,7 @@
 import { Composer } from "@/components/budget/composer";
 import { OSProvider } from "@/components/shell/os-provider";
 import { MobileBar, MobileDock, Sidebar } from "@/components/shell/sidebar";
+import { SyncErrors } from "@/components/shell/sync-errors";
 import { ToastProvider } from "@/components/ui/toast";
 
 export default function OSLayout({ children }: LayoutProps<"/">) {
@@ -16,6 +17,7 @@ export default function OSLayout({ children }: LayoutProps<"/">) {
         </div>
         <MobileDock />
         <Composer />
+        <SyncErrors />
       </OSProvider>
     </ToastProvider>
   );
