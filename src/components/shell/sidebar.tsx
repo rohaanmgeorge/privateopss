@@ -6,6 +6,7 @@ import { Plus } from "lucide-react";
 import { motion } from "motion/react";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { Kbd } from "@/components/ui/primitives";
+import { AccountButton, AccountMenu } from "./account-menu";
 import { isActive, MOBILE_NAV, NAV } from "./nav";
 import { useOS } from "./os-provider";
 
@@ -85,15 +86,12 @@ export function Sidebar() {
         ))}
       </nav>
 
-      <div className="mt-6 flex items-center justify-between border-t border-line pt-5">
-        <div className="flex items-center gap-2 px-2">
-          <span className="relative flex size-2">
-            <span className="absolute inline-flex size-full animate-ping rounded-full bg-positive opacity-50" />
-            <span className="relative inline-flex size-2 rounded-full bg-positive" />
-          </span>
-          <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted">On this device</span>
+      <div className="mt-6 space-y-4 border-t border-line pt-5">
+        <div className="flex items-center justify-between px-2">
+          <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted">Appearance</span>
+          <ThemeToggle />
         </div>
-        <ThemeToggle />
+        <AccountMenu />
       </div>
     </aside>
   );
@@ -103,7 +101,10 @@ export function MobileBar() {
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-line bg-paper/80 px-4 backdrop-blur-xl lg:hidden">
       <Wordmark />
-      <ThemeToggle />
+      <div className="flex items-center gap-2">
+        <ThemeToggle />
+        <AccountButton />
+      </div>
     </header>
   );
 }
