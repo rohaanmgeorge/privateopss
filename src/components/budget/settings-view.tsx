@@ -1,12 +1,12 @@
 "use client";
 
-import { Download, RotateCcw, Sparkles, Upload } from "lucide-react";
-import { useRef, useState } from "react";
+import { Download, HardDriveUpload, Loader2, RotateCcw, Sparkles, Upload } from "lucide-react";
+import { useRef, useState, useSyncExternalStore } from "react";
 import { PageHeader } from "@/components/shell/page-header";
 import { Button, Eyebrow, Panel } from "@/components/ui/primitives";
 import { useToast } from "@/components/ui/toast";
 import { money } from "@/lib/budget/format";
-import { budget } from "@/lib/budget/store";
+import { budget, clearLegacyLocalData, readLegacyLocalData, useAccount } from "@/lib/budget/store";
 import type { BudgetState } from "@/lib/budget/types";
 import { BudgetGate } from "./budget-gate";
 
@@ -20,6 +20,8 @@ const CURRENCIES = [
   { code: "JPY", locale: "ja-JP", label: "Japanese Yen" },
 ];
 
+const noopSubscribe = () => () => {};
+
 export function SettingsView() {
   return <BudgetGate>{(state) => <Settings state={state} />}</BudgetGate>;
 }
@@ -28,6 +30,24 @@ function Settings({ state }: { state: BudgetState }) {
   const toast = useToast();
   const fileRef = useRef<HTMLInputElement>(null);
   const [confirmReset, setConfirmReset] = useState(false);
+  const [busy, setBusy] = useState<string | null>(null);
+  const account = useAccount();
+  const legacy = useSyncExternalStore(noopSubscribe, readLegacyLocalData, () => null);
+  const [legacyDismissed, setLegacyDismissed] = useState(false);
+
+  /** Run a whole-account replace and report the outcome. Errors are already toasted by the store. */
+  const run = async (label: string, task: () => Promise<void>, done: string) => {
+    setBusy(label);
+    try {
+      await task();
+      toast.show(done);
+      return true;
+    } catch {
+      return false;
+    } finally {
+      setBusy(null);
+    }
+  };
 
   const exportBackup = () => {
     const blob = new Blob([budget.exportJSON()], { type: "application/json" });
@@ -41,11 +61,21 @@ function Settings({ state }: { state: BudgetState }) {
   };
 
   const importBackup = async (file: File) => {
+    const text = await file.text();
     try {
-      budget.importJSON(await file.text());
-      toast.show("Backup restored");
-    } catch (e) {
-      toast.show(e instanceof Error ? e.message : "Couldn’t read that file");
+      JSON.parse(text);
+    } catch {
+      toast.show("Couldn’t read that file");
+      return;
+    }
+    await run("restore", () => budget.importJSON(text), "Backup restored");
+  };
+
+  const importLegacy = async () => {
+    if (!legacy) return;
+    if (await run("legacy", () => budget.importJSON(legacy), "Browser data imported to your account")) {
+      clearLegacyLocalData();
+      setLegacyDismissed(true);
     }
   };
 
@@ -59,6 +89,24 @@ function Settings({ state }: { state: BudgetState }) {
           </>
         }
       />
+
+      {legacy && !legacyDismissed && (
+        <Panel className="mb-4 flex flex-col gap-4 border-signal/40 bg-signal/5 p-6 md:flex-row md:items-center md:justify-between md:p-8">
+          <div>
+            <Eyebrow>Found on this browser</Eyebrow>
+            <h2 className="display mt-2 text-3xl">Bring your earlier entries along</h2>
+            <p className="mt-2 max-w-xl text-sm text-muted">
+              Data saved here before you had an account can be moved into it. This replaces what’s currently in your account.
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <Button onClick={() => setLegacyDismissed(true)}>Not now</Button>
+            <Button variant="signal" onClick={importLegacy} disabled={busy !== null}>
+              {busy === "legacy" ? <Loader2 className="size-4 animate-spin" /> : <HardDriveUpload className="size-4" />} Import
+            </Button>
+          </div>
+        </Panel>
+      )}
 
       <div className="grid gap-4 md:grid-cols-2">
         <Panel className="p-6 md:p-8">
@@ -88,10 +136,10 @@ function Settings({ state }: { state: BudgetState }) {
 
         <Panel className="p-6 md:p-8">
           <Eyebrow>Your data</Eyebrow>
-          <h2 className="display mt-2 text-3xl">Lives on this device</h2>
+          <h2 className="display mt-2 text-3xl">Synced to your account</h2>
           <p className="mt-4 text-sm leading-relaxed text-ink-2">
-            Everything is stored locally in this browser — nothing leaves your machine. Download a backup now and then; sync
-            and end-to-end encryption are on the roadmap.
+            Signed in as <span className="font-medium text-ink">{account?.email ?? "you"}</span>. Your entries are stored in
+            your private database and follow you across devices; row-level security means only your account can read them.
           </p>
           <dl className="mt-6 grid grid-cols-2 gap-4 border-t border-line pt-6 text-sm">
             <div>
@@ -107,8 +155,8 @@ function Settings({ state }: { state: BudgetState }) {
             <Button variant="primary" onClick={exportBackup}>
               <Download className="size-4" /> Export backup
             </Button>
-            <Button onClick={() => fileRef.current?.click()}>
-              <Upload className="size-4" /> Restore
+            <Button onClick={() => fileRef.current?.click()} disabled={busy !== null}>
+              {busy === "restore" ? <Loader2 className="size-4 animate-spin" /> : <Upload className="size-4" />} Restore
             </Button>
             <input
               ref={fileRef}
@@ -134,26 +182,21 @@ function Settings({ state }: { state: BudgetState }) {
               </p>
             </div>
             <div className="flex flex-wrap gap-2">
-              <Button
-                onClick={() => {
-                  budget.loadDemo();
-                  toast.show("Demo data loaded");
-                }}
-              >
-                <Sparkles className="size-4" /> Load demo
+              <Button disabled={busy !== null} onClick={() => run("demo", budget.loadDemo, "Demo data loaded")}>
+                {busy === "demo" ? <Loader2 className="size-4 animate-spin" /> : <Sparkles className="size-4" />} Load demo
               </Button>
               {confirmReset ? (
                 <>
                   <Button onClick={() => setConfirmReset(false)}>Cancel</Button>
                   <Button
                     variant="danger"
-                    onClick={() => {
-                      budget.reset();
+                    disabled={busy !== null}
+                    onClick={async () => {
+                      await run("reset", budget.reset, "All entries cleared");
                       setConfirmReset(false);
-                      toast.show("All entries cleared");
                     }}
                   >
-                    Yes, erase everything
+                    {busy === "reset" && <Loader2 className="size-4 animate-spin" />} Yes, erase everything
                   </Button>
                 </>
               ) : (
