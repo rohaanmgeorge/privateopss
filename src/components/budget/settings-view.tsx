@@ -2,6 +2,7 @@
 
 import { Download, HardDriveUpload, Loader2, RotateCcw, Sparkles, Upload } from "lucide-react";
 import { useRef, useState, useSyncExternalStore } from "react";
+import { PasswordPanel } from "@/components/auth/password-panel";
 import { PageHeader } from "@/components/shell/page-header";
 import { Button, Eyebrow, Panel } from "@/components/ui/primitives";
 import { useToast } from "@/components/ui/toast";
@@ -171,6 +172,8 @@ function Settings({ state }: { state: BudgetState }) {
             />
           </div>
         </Panel>
+
+        <PasswordPanel />
 
         <Panel className="p-6 md:col-span-2 md:p-8">
           <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
