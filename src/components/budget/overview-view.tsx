@@ -56,7 +56,7 @@ function Overview({ state }: { state: BudgetState }) {
         }
       />
 
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-6">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-6 [&>*]:min-w-0">
         {/* Hero — remaining */}
         <motion.div custom={0} variants={rise} initial="hidden" animate="show" className="md:col-span-4">
           <Panel className="relative h-full overflow-hidden p-6 md:p-9">
@@ -91,10 +91,10 @@ function Overview({ state }: { state: BudgetState }) {
         </motion.div>
 
         {/* Stat stack */}
-        <motion.div custom={1} variants={rise} initial="hidden" animate="show" className="grid gap-4 md:col-span-2">
+        <motion.div custom={1} variants={rise} initial="hidden" animate="show" className="grid grid-cols-2 gap-4 md:col-span-2 md:grid-cols-1">
           <Stat label="Income" value={money(t.income, settings)} tone="positive" />
           <Stat label="Spent" value={money(t.expense, settings)} />
-          <Panel className="flex flex-col justify-between bg-ink p-6 text-paper">
+          <Panel className="col-span-2 flex flex-col justify-between bg-ink p-6 text-paper md:col-span-1">
             <Eyebrow className="!text-paper/50">Savings rate</Eyebrow>
             <p className="display tabular mt-4 text-6xl">{t.income ? percent(Math.max(0, t.savingsRate)) : "—"}</p>
             <p className="mt-2 text-sm text-paper/60">
@@ -238,7 +238,7 @@ function Stat({ label, value, tone }: { label: string; value: string; tone?: "po
   return (
     <Panel className="flex flex-col justify-between p-6">
       <Eyebrow>{label}</Eyebrow>
-      <p className={`display tabular mt-4 text-[40px] ${tone === "positive" ? "text-positive" : ""}`}>{value}</p>
+      <p className={`display tabular mt-4 text-[clamp(26px,6vw,40px)] ${tone === "positive" ? "text-positive" : ""}`}>{value}</p>
     </Panel>
   );
 }
