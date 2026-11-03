@@ -12,6 +12,8 @@ export interface Category {
   kind: TransactionKind;
   /** Monthly limit in minor units (cents/paise). 0 = no budget set. */
   monthlyLimit: number;
+  /** Fixed costs (rent, bills) are paid once a month and excluded from pace forecasting. */
+  fixed?: boolean;
 }
 
 export interface Transaction {

@@ -4,11 +4,11 @@ import type { BudgetState, Category, Transaction } from "./types";
 export const DEFAULT_CATEGORIES: Category[] = [
   { id: "salary", name: "Salary", glyph: "◆", color: "var(--chart-5)", kind: "income", monthlyLimit: 0 },
   { id: "freelance", name: "Freelance", glyph: "✦", color: "var(--chart-4)", kind: "income", monthlyLimit: 0 },
-  { id: "rent", name: "Rent & Home", glyph: "⌂", color: "var(--chart-1)", kind: "expense", monthlyLimit: 3_500_000 },
+  { id: "rent", name: "Rent & Home", glyph: "⌂", color: "var(--chart-1)", kind: "expense", monthlyLimit: 3_500_000, fixed: true },
   { id: "food", name: "Food & Dining", glyph: "◐", color: "var(--chart-2)", kind: "expense", monthlyLimit: 1_200_000 },
   { id: "transport", name: "Transport", glyph: "→", color: "var(--chart-3)", kind: "expense", monthlyLimit: 500_000 },
   { id: "shopping", name: "Shopping", glyph: "◇", color: "var(--chart-4)", kind: "expense", monthlyLimit: 800_000 },
-  { id: "bills", name: "Bills & Utilities", glyph: "≋", color: "var(--chart-5)", kind: "expense", monthlyLimit: 600_000 },
+  { id: "bills", name: "Bills & Utilities", glyph: "≋", color: "var(--chart-5)", kind: "expense", monthlyLimit: 600_000, fixed: true },
   { id: "fun", name: "Entertainment", glyph: "✺", color: "var(--chart-6)", kind: "expense", monthlyLimit: 400_000 },
   { id: "health", name: "Health", glyph: "+", color: "var(--chart-3)", kind: "expense", monthlyLimit: 300_000 },
 ];

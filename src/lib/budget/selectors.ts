@@ -88,10 +88,26 @@ export function groupByDay(list: Transaction[]) {
   return groups;
 }
 
-/** Projected month-end spend assuming the current daily average holds. */
+/**
+ * Projected month-end spend.
+ *
+ * Fixed categories (rent, bills) are lumpy — extrapolating them daily wildly
+ * overshoots. So: fixed costs count at the larger of spent-so-far or their
+ * limit, and only variable spending is projected at its current daily rate.
+ */
 export function forecast(state: BudgetState, key: string) {
   const { points, lastDay, days, totalBudget } = dailyPace(state, key);
   const spent = points[lastDay - 1]?.cumulative ?? 0;
-  const projected = lastDay > 0 ? Math.round((spent / lastDay) * days) : 0;
-  return { spent, projected, totalBudget, daysLeft: days - lastDay, safeDaily: Math.max(0, totalBudget - spent) / Math.max(1, days - lastDay) };
+
+  let fixedProjected = 0;
+  let variableSpent = 0;
+  for (const c of spendByCategory(state, key)) {
+    if (c.category.fixed) fixedProjected += Math.max(c.spent, c.limit);
+    else variableSpent += c.spent;
+  }
+  const variableProjected = lastDay > 0 ? (variableSpent / lastDay) * days : 0;
+  const projected = Math.round(fixedProjected + variableProjected);
+  const daysLeft = days - lastDay;
+
+  return { spent, projected, totalBudget, daysLeft, safeDaily: Math.max(0, totalBudget - spent) / Math.max(1, daysLeft) };
 }
