@@ -1,26 +1,140 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+/* ──────────────────────────────────────────────────────────────
+   Private OS — design tokens
+   Paper & ink editorial palette with a single vermilion signal.
+   ────────────────────────────────────────────────────────────── */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --paper: #f1eee6;
+  --paper-2: #e9e5db;
+  --card: #f8f6f1;
+  --ink: #12110f;
+  --ink-2: #3b3934;
+  --muted: #7d7a72;
+  --line: rgb(18 17 15 / 0.1);
+  --line-strong: rgb(18 17 15 / 0.22);
+  --signal: #ff4f1f;
+  --signal-ink: #ffffff;
+  --positive: #1f7a4d;
+  --lime: #d4f25a;
+  --negative: #d6361f;
+  --chart-1: #12110f;
+  --chart-2: #ff4f1f;
+  --chart-3: #8a8577;
+  --chart-4: #c9b98f;
+  --chart-5: #4a6b5d;
+  --chart-6: #b9b3a5;
+  --grain-opacity: 0.06;
+  color-scheme: light;
+}
+
+[data-theme="dark"] {
+  --paper: #0d0d0c;
+  --paper-2: #151513;
+  --card: #141412;
+  --ink: #f1eee6;
+  --ink-2: #c8c4ba;
+  --muted: #8a867d;
+  --line: rgb(241 238 230 / 0.09);
+  --line-strong: rgb(241 238 230 / 0.2);
+  --signal: #ff5a2b;
+  --positive: #5fd08f;
+  --negative: #ff6b52;
+  --chart-1: #f1eee6;
+  --chart-2: #ff5a2b;
+  --chart-3: #8a867d;
+  --chart-4: #c9b98f;
+  --chart-5: #6f9c88;
+  --chart-6: #4b4943;
+  --grain-opacity: 0.08;
+  color-scheme: dark;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  --color-paper: var(--paper);
+  --color-paper-2: var(--paper-2);
+  --color-card: var(--card);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-signal: var(--signal);
+  --color-signal-ink: var(--signal-ink);
+  --color-positive: var(--positive);
+  --color-negative: var(--negative);
+  --color-lime: var(--lime);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --font-display: var(--font-instrument-serif);
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html,
+body {
+  background: var(--paper);
+  color: var(--ink);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  font-feature-settings: "ss01", "cv11";
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: var(--signal);
+  color: var(--signal-ink);
+}
+
+/* Film grain overlay — sits above everything, never intercepts input */
+.grain::after {
+  content: "";
+  position: fixed;
+  inset: -50%;
+  z-index: 100;
+  pointer-events: none;
+  opacity: var(--grain-opacity);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  animation: grain 1.2s steps(6) infinite;
+}
+
+@keyframes grain {
+  0% { transform: translate(0, 0); }
+  20% { transform: translate(-3%, 2%); }
+  40% { transform: translate(2%, -3%); }
+  60% { transform: translate(-2%, -1%); }
+  80% { transform: translate(3%, 3%); }
+  100% { transform: translate(0, 0); }
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+.display {
+  font-family: var(--font-instrument-serif), Georgia, serif;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  line-height: 0.9;
+}
+
+/* Hairline scrollbars */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--line-strong) transparent;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+  .grain::after {
+    animation: none;
+  }
 }
