@@ -1,6 +1,15 @@
 "use client";
 
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  useSyncExternalStore,
+  type ReactNode,
+} from "react";
 import { monthKey, shiftMonth, today } from "@/lib/budget/dates";
 import type { Transaction } from "@/lib/budget/types";
 
@@ -22,11 +31,27 @@ interface OSContextValue {
 
 const OSContext = createContext<OSContextValue | null>(null);
 
+const noopSubscribe = () => () => {};
+
+/**
+ * The current month is only known in the browser. Reading it through
+ * useSyncExternalStore keeps `new Date()` out of the prerendered shell
+ * (required by Cache Components) — the server snapshot is an empty string.
+ */
+function useCurrentMonth() {
+  return useSyncExternalStore(noopSubscribe, () => monthKey(today()), () => "");
+}
+
 export function OSProvider({ children }: { children: ReactNode }) {
-  const [month, setMonth] = useState(() => monthKey(today()));
+  const currentMonth = useCurrentMonth();
+  const [selected, setMonth] = useState<string | null>(null);
+  const month = selected ?? currentMonth;
   const [composer, setComposer] = useState<ComposerState>({ open: false, editing: null });
 
-  const stepMonth = useCallback((delta: number) => setMonth((m) => shiftMonth(m, delta)), []);
+  const stepMonth = useCallback(
+    (delta: number) => setMonth((m) => shiftMonth(m ?? monthKey(today()), delta)),
+    [],
+  );
   const openComposer = useCallback((tx?: Transaction) => setComposer({ open: true, editing: tx ?? null }), []);
   const closeComposer = useCallback(() => setComposer((c) => ({ ...c, open: false })), []);
 
@@ -53,12 +78,12 @@ export function OSProvider({ children }: { children: ReactNode }) {
       month,
       setMonth,
       stepMonth,
-      isCurrentMonth: month === monthKey(today()),
+      isCurrentMonth: month === currentMonth,
       composer,
       openComposer,
       closeComposer,
     }),
-    [month, stepMonth, composer, openComposer, closeComposer],
+    [month, currentMonth, stepMonth, composer, openComposer, closeComposer],
   );
 
   return <OSContext value={value}>{children}</OSContext>;
