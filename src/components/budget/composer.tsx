@@ -59,6 +59,19 @@ export function Composer() {
   );
 }
 
+/** Default to the category used most in the latest 50 entries of this kind (not just the first, often Rent). */
+function mostUsed(state: BudgetState, kind: TransactionKind) {
+  const options = state.categories.filter((c) => c.kind === kind && !c.fixed);
+  const pool = options.length ? options : state.categories.filter((c) => c.kind === kind);
+  const counts = new Map<string, number>();
+  for (const t of state.transactions.filter((t) => t.kind === kind).slice(0, 50)) {
+    counts.set(t.categoryId, (counts.get(t.categoryId) ?? 0) + 1);
+  }
+  let best = pool[0]?.id ?? "";
+  for (const c of pool) if ((counts.get(c.id) ?? 0) > (counts.get(best) ?? 0)) best = c.id;
+  return best;
+}
+
 function ComposerForm({ state, editing, onDone }: { state: BudgetState; editing: Transaction | null; onDone: () => void }) {
   const toast = useToast();
   const [kind, setKind] = useState<TransactionKind>(editing?.kind ?? "expense");
@@ -73,7 +86,7 @@ function ComposerForm({ state, editing, onDone }: { state: BudgetState; editing:
   }, []);
 
   const categories = state.categories.filter((c) => c.kind === kind);
-  const effectiveCategory = categories.some((c) => c.id === categoryId) ? categoryId : (categories[0]?.id ?? "");
+  const effectiveCategory = categories.some((c) => c.id === categoryId) ? categoryId : mostUsed(state, kind);
   const parsed = parseAmount(amount);
   const valid = parsed !== null && effectiveCategory !== "";
 
