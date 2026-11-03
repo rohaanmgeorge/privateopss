@@ -131,7 +131,7 @@ function EnvelopeRow({ item, state }: { item: CategorySpend; state: BudgetState 
         <div>
           <p className="font-medium">{category.name}</p>
           <p className="flex items-center gap-2 text-xs text-muted">
-            {count} entries
+            {count} {count === 1 ? "entry" : "entries"}
             <button
               type="button"
               aria-pressed={!!category.fixed}
