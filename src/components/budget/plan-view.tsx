@@ -130,7 +130,20 @@ function EnvelopeRow({ item, state }: { item: CategorySpend; state: BudgetState 
         </span>
         <div>
           <p className="font-medium">{category.name}</p>
-          <p className="text-xs text-muted">{count} entries</p>
+          <p className="flex items-center gap-2 text-xs text-muted">
+            {count} entries
+            <button
+              type="button"
+              aria-pressed={!!category.fixed}
+              title="Fixed costs are paid once a month and aren’t extrapolated in the forecast"
+              onClick={() => budget.upsertCategory({ ...category, fixed: !category.fixed })}
+              className={`rounded-full border px-1.5 font-mono text-[9px] uppercase tracking-wider transition ${
+                category.fixed ? "border-ink bg-ink text-paper" : "border-line hover:border-line-strong"
+              }`}
+            >
+              Fixed
+            </button>
+          </p>
         </div>
       </div>
       <p className="tabular hidden text-sm md:block">{money(spent, state.settings)}</p>
