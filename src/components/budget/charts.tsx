@@ -171,36 +171,36 @@ export function CategoryRing({
   const total = slices.reduce((s, x) => s + x.value, 0) || 1;
   const r = 42;
   const C = 2 * Math.PI * r;
-  const gap = slices.filter((s) => s.value > 0).length > 1 ? 1.2 : 0;
-  let offset = 0;
+  const visible = slices.filter((s) => s.value > 0);
+  const gap = visible.length > 1 ? 1.2 : 0;
+  const arcs = visible.reduce<{ id: string; color: string; len: number; start: number }[]>((acc, s) => {
+    const prev = acc[acc.length - 1];
+    acc.push({ id: s.id, color: s.color, len: (s.value / total) * C, start: prev ? prev.start + prev.len : 0 });
+    return acc;
+  }, []);
 
   return (
     <div className="relative grid place-items-center" style={{ width: size, height: size }}>
       <svg viewBox="0 0 100 100" className="absolute inset-0 -rotate-90">
         <circle cx="50" cy="50" r={r} fill="none" stroke="var(--line)" strokeWidth="9" />
-        {slices
-          .filter((s) => s.value > 0)
-          .map((s, i) => {
-            const len = (s.value / total) * C;
-            const dash = Math.max(0, len - gap);
-            const el = (
-              <motion.circle
-                key={s.id}
-                cx="50"
-                cy="50"
-                r={r}
-                fill="none"
-                stroke={s.color}
-                strokeWidth="9"
-                strokeDashoffset={-offset}
-                initial={{ strokeDasharray: `0 ${C}` }}
-                animate={{ strokeDasharray: `${dash} ${C - dash}` }}
-                transition={{ delay: 0.1 + i * 0.05, duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
-              />
-            );
-            offset += len;
-            return el;
-          })}
+        {arcs.map((a, i) => {
+          const dash = Math.max(0, a.len - gap);
+          return (
+            <motion.circle
+              key={a.id}
+              cx="50"
+              cy="50"
+              r={r}
+              fill="none"
+              stroke={a.color}
+              strokeWidth="9"
+              strokeDashoffset={-a.start}
+              initial={{ strokeDasharray: `0 ${C}` }}
+              animate={{ strokeDasharray: `${dash} ${C - dash}` }}
+              transition={{ delay: 0.1 + i * 0.05, duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
+            />
+          );
+        })}
       </svg>
       <div className="relative text-center">{children}</div>
     </div>
