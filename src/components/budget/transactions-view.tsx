@@ -47,7 +47,7 @@ function Transactions({ state }: { state: BudgetState }) {
         eyebrow={`Transactions · ${monthLabel(month, state.settings.locale)}`}
         title={
           <>
-            Every <em>rupee</em>, accounted.
+            Every <em>coin</em>, accounted.
           </>
         }
         actions={
