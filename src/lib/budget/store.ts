@@ -82,7 +82,9 @@ function start() {
 function subscribe(listener: () => void) {
   start();
   listeners.add(listener);
-  return () => listeners.delete(listener);
+  return () => {
+    listeners.delete(listener);
+  };
 }
 
 /** Returns the budget state, or null until the signed-in user's data has loaded. */
@@ -97,7 +99,9 @@ export function useAccount(): Account | null {
 /** Subscribe to sync errors (used to show a toast). */
 export function onSyncError(listener: (message: string) => void) {
   errorListeners.add(listener);
-  return () => errorListeners.delete(listener);
+  return () => {
+    errorListeners.delete(listener);
+  };
 }
 
 /** Apply a change locally now, then persist; on failure, report and resync. */
