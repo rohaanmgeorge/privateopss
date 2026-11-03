@@ -39,7 +39,8 @@ export function createSeedState(now = new Date()): BudgetState {
   let n = 0;
   const add = (date: Date, t: Omit<Transaction, "id" | "date" | "createdAt">) => {
     if (date > now) return;
-    transactions.push({ ...t, id: `seed-${n++}`, date: toISODate(date), createdAt: date.getTime() });
+    // Real UUIDs so demo rows can be stored in Postgres; +n keeps same-day order stable.
+    transactions.push({ ...t, id: crypto.randomUUID(), date: toISODate(date), createdAt: date.getTime() + n++ });
   };
 
   for (let back = 3; back >= 0; back--) {
